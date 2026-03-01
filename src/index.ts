@@ -23,13 +23,13 @@ const themes = {
 	},
 };
 
-// Fetch and cache Inter font (must be TTF — satori does not support woff2)
+// Full Inter font from Google Fonts (contains ALL subsets: Latin, Vietnamese, Cyrillic, Greek)
 let fontCache: ArrayBuffer | null = null;
 
 async function getFont(): Promise<ArrayBuffer> {
 	if (fontCache) return fontCache;
 	const res = await fetch(
-		"https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf"
+		"https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf"
 	);
 	fontCache = await res.arrayBuffer();
 	return fontCache;
