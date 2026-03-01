@@ -35,15 +35,32 @@ async function getFont(): Promise<ArrayBuffer> {
 	return fontCache;
 }
 
+function decodeBase64UTF8(str: string): string {
+	if (!str) return "";
+	// Hono's query parser automatically replaces URL-encoded '+' with spaces.
+	// We must restore them before decoding base64.
+	const b64 = str.replace(/ /g, "+");
+	try {
+		const binaryStr = atob(b64);
+		const bytes = new Uint8Array(binaryStr.length);
+		for (let i = 0; i < binaryStr.length; i++) {
+			bytes[i] = binaryStr.charCodeAt(i);
+		}
+		return new TextDecoder().decode(bytes);
+	} catch (e) {
+		return str; // Fallback if not base64 encoded
+	}
+}
+
 app.get("/og", async (c) => {
-	const {
-		title = "JakeClark",
-		description = "",
-		author = "JakeClark",
-		date = "",
-		tags = "",
-		theme: themeParam = "dark",
-	} = c.req.query();
+	const queryTheme = c.req.query("theme") || "dark";
+
+	const title = decodeBase64UTF8(c.req.query("title") || "JakeClark");
+	const description = decodeBase64UTF8(c.req.query("description") || "");
+	const author = decodeBase64UTF8(c.req.query("author") || "JakeClark");
+	const date = decodeBase64UTF8(c.req.query("date") || "");
+	const tags = decodeBase64UTF8(c.req.query("tags") || "");
+	const themeParam = queryTheme;
 
 	const t = themeParam === "light" ? themes.light : themes.dark;
 	const tagList = tags
@@ -93,7 +110,6 @@ app.get("/", (c) => c.text("OG Image Generator is running."));
 
 function escapeHtml(str: string): string {
 	return str
-		.replace(/&/g, "&amp;")
 		.replace(/</g, "&lt;")
 		.replace(/>/g, "&gt;")
 		.replace(/"/g, "&quot;");
